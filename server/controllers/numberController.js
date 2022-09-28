@@ -6,10 +6,10 @@ const {
 } = require("../models");
 
 class numberController {
-  static async addCounter (req, res, next) {
+  static async addDocNumber (req, res, next) {
     try {
       const {
-        email,
+        // email,
         name,
         type,
         directed_to,

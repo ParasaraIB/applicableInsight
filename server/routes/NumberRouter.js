@@ -3,6 +3,6 @@
 const numberRouter = require("express").Router();
 const numberController = require("../controllers/numberController");
 
-numberRouter.post("/addDocNumber", numberController.addCounter);
+numberRouter.post("/addDocNumber", numberController.addDocNumber);
 
 module.exports = numberRouter;
