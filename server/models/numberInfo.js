@@ -14,7 +14,9 @@ const numberInfo = new mongoose.Schema({
     default: false
   },
   edited_by: [],
-  deleted_by: []
+  deleted_by: [],
+  counter_info: {},
+  backIdentifier: {}
 });
 
 const model = mongoose.model("NumberInfo", numberInfo);
