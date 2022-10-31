@@ -13,11 +13,13 @@ const numberInfo = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  isBackDate: Boolean,
   created_by: {},
   edited_by: [],
   deleted_by: [],
   counter_info: {},
-  backIdentifier: {}
+  backIdentifier: {},
+  mail_to: String
 });
 
 const model = mongoose.model("NumberInfo", numberInfo);

@@ -7,7 +7,7 @@ const counter = new mongoose.Schema({
   type: String,
   year: String,
   count: Number,
-  yearMonth: String
+  uker: String
 });
 
 const model = mongoose.model("Counter", counter);

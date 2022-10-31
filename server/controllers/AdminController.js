@@ -33,7 +33,7 @@ class AdminController {
         email: req.payload.email,
         deleted: {$ne: true},
         super_user: true
-      }).lean();
+      }, {_id: 1, full_name: 1, nip: 1, email: 1}).lean();
 
       if (!adminAuth) return res.status(403).json({message: "Forbidden"});
 
