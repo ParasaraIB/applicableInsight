@@ -2,14 +2,21 @@
 
 const {
   Counter,
-  NumberInfo
+  NumberInfo,
+  Admin
 } = require("../models");
 
-class numberController {
+class NumberController {
   static async addDocNumber (req, res, next) {
     try {
+      const adminAuth = await Admin.findOne({
+        email: req.payload.email,
+        deleted: {$ne: true}
+      }).lean();
+
+      if (!adminAuth) return res.status(403).json({message: "Forbidden"});
+
       const {
-        // email,
         name,
         type,
         directed_to,
@@ -72,8 +79,9 @@ class numberController {
       });
     } catch (err) {
       console.error(err, "<<<< error in addCounter CounterController");
+      return res.status(500).json({message: "Internal server error"});
     }
   }
 }
 
-module.exports = numberController;
+module.exports = NumberController;

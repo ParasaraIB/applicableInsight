@@ -13,6 +13,7 @@ const numberInfo = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  created_by: {},
   edited_by: [],
   deleted_by: [],
   counter_info: {},

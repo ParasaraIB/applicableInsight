@@ -1,8 +1,10 @@
 "use strict";
 
-const numberRouter = require("express").Router();
-const numberController = require("../controllers/numberController");
+const NumberRouter = require("express").Router();
 
-numberRouter.post("/addDocNumber", numberController.addDocNumber);
+const authentication = require("../middlewares/auth");
+const NumberController = require("../controllers/NumberController");
 
-module.exports = numberRouter;
+NumberRouter.post("/addDocNumber", authentication, NumberController.addDocNumber);
+
+module.exports = NumberRouter;
