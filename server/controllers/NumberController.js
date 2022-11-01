@@ -1,6 +1,7 @@
 "use strict";
 
 const nodemailer = require("nodemailer");
+const ExcelJS = require("exceljs");
 
 const {
   Counter,
@@ -106,7 +107,7 @@ class NumberController {
             <p>Semoga hari anda menyenangkan.</p>
             <br><br>
             <p>Salam, </p>
-            <p>Admin IT OJT</p>
+            <p>Ida Bagus - IT OJT</p>
           `
         };
   
@@ -160,6 +161,52 @@ class NumberController {
       });
     } catch (err) {
       console.error(err, "<<<< error in lisDocNumber NumberController");
+      return res.status(500).json({message: "Internal server error"});
+    }
+  }
+
+  static async downloadDocNumber (req, res, next) {
+    try {
+      const currentDate = new Date();
+      const retunredValue = {_id: 1, serial_number: 1, directed_to: 1, regarding: 1, pic_name: 1, doc_number: 1, isBackDate: 1, counter_info: 1};
+      const numberInfos = await NumberInfo.find({}, retunredValue).sort("-_id").lean();
+      const allTypes = await Counter.find().lean();
+      const workbook = new ExcelJS.Workbook();
+      for (let i = 0; i < allTypes.length; i++) {
+        const worksheetName = `${allTypes[i].type} ${allTypes[i].uker ? allTypes[i].uker : ""}`;
+        const adjName = worksheetName.replace("/", " ");
+        const worksheet = workbook.addWorksheet(adjName);
+        worksheet.columns = [
+          {header: "Id", key: "_id"},
+          {header: "Serial number", key: "serial_number"},
+          {header: "Directed to", key: "directed_to"},
+          {header: "Regarding", key: "regarding"},
+          {header: "Doc number", key: "doc_number"},
+          {header: "Back date", key: "isBackDate"},
+          {header: "Pic name", key: "pic_name"},
+        ];
+        const fillers = [];
+        for (let j = 0; j < numberInfos.length; j++) {
+          if (allTypes[i].uker && numberInfos[j].counter_info.uker && allTypes[i].uker === numberInfos[j].counter_info.uker && allTypes[i].type === numberInfos[j].counter_info.type) {
+            fillers.push(numberInfos[j]);
+          } else if (allTypes[i].type === numberInfos[j].counter_info.type) {
+            fillers.push(numberInfos[j]);
+          }
+        } 
+        worksheet.addRows(fillers);
+      }
+      res.setHeader(
+        "Content-Type",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      );
+      res.setHeader(
+        "Content-Disposition",
+        "attachment; filename=" + `${currentDate}RekapPengambilanNomor.xlsx`
+      );
+      await workbook.xlsx.write(res);
+      return res.status(200).end();
+    } catch (err) {
+      console.error(err, "<<<< error in downloadDocNumber NumberController");
       return res.status(500).json({message: "Internal server error"});
     }
   }
