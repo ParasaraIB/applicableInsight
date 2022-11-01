@@ -7,6 +7,6 @@ const NumberController = require("../controllers/NumberController");
 
 NumberRouter.post("/addDocNumber", authentication, NumberController.addDocNumber);
 NumberRouter.get("/listDocNumber", authentication, NumberController.listDocNumber);
-NumberRouter.get("/downloadDocNumber", NumberController.downloadDocNumber);
+NumberRouter.get("/downloadDocNumber", authentication, NumberController.downloadDocNumber);
 
 module.exports = NumberRouter;

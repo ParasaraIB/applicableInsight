@@ -10,10 +10,10 @@ const {
 } = require("../models");
 
 function toDecimal(str) {
-  var decimal = 0;
-  var letters = str.split(new RegExp());
+  let decimal = 0;
+  let letters = str.split(new RegExp());
 
-  for(var i = letters.length - 1; i >= 0; i--) {
+  for(let i = letters.length - 1; i >= 0; i--) {
       decimal += (letters[i].charCodeAt(0) - 64) * (Math.pow(26, letters.length - (i + 1)));
   }
 
@@ -21,17 +21,18 @@ function toDecimal(str) {
 }
 
 function convertToNumberingScheme(number) {
-  var baseChar = ("A").charCodeAt(0),
-      letters  = "";
+  let baseChar = ("A").charCodeAt(0)
+  let letters  = "";
 
   do {
     number -= 1;
     letters = String.fromCharCode(baseChar + (number % 26)) + letters;
-    number = (number / 26) >> 0; // quick `floor`
+    number = (number / 26) >> 0;
   } while(number > 0);
 
   return letters;
 }
+
 class NumberController {
   static async addDocNumber (req, res, next) {
     try {
@@ -67,15 +68,13 @@ class NumberController {
       const counterQuery = {name, type, year};
       if (uker) counterQuery.uker = uker;
       if (isBackDate && convBackDate < currentDate) {
-        const alphabets = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"];
         const getNumber = await NumberInfo.find({"counter_info.name": name, "counter_info.type": type, "counter_info.year": `${year}`, created_at: {$gte: convBackDate, $lte: currentDate}}).sort({created_at: 1, "backIdentifier.alphabet": 1, }).limit(1);
         if (!getNumber.length) return res.status(404).json({message: "Please use the normal type"});
         if (getNumber.length && getNumber[0].backIdentifier) {
-          const alphabetIndex = alphabets.indexOf(getNumber[0].backIdentifier.alphabet);
-          if (alphabetIndex > 25) return res.status(400).json({message: "Maximum backdate quota has reached"});
-          alphabet = alphabets[alphabetIndex + 1];
+          const alphabetIndex = toDecimal(getNumber[0].backIdentifier.alphabet);
+          alphabet = convertToNumberingScheme(alphabetIndex + 1);
         } else {
-          alphabet = alphabets[0];
+          alphabet = "A"
         }
         numbering = {... await Counter.findOne(counterQuery).lean()};
         
