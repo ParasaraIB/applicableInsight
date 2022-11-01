@@ -14,14 +14,14 @@ function toDecimal(str) {
   let letters = str.split(new RegExp());
 
   for(let i = letters.length - 1; i >= 0; i--) {
-      decimal += (letters[i].charCodeAt(0) - 64) * (Math.pow(26, letters.length - (i + 1)));
+    decimal += (letters[i].charCodeAt(0) - 64) * (Math.pow(26, letters.length - (i + 1)));
   }
 
   return decimal;
 }
 
 function convertToNumberingScheme(number) {
-  let baseChar = ("A").charCodeAt(0)
+  let baseChar = ("A").charCodeAt(0);
   let letters  = "";
 
   do {

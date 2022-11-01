@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from "react";
 import {useDispatch, useSelector} from "react-redux";
+import Navbar from "../components/Navbar";
 
 import {addDocNumber} from "../store/actions/numberAction";
-import Swal from "sweetalert2";
 
 const Home = () => {
   const dispatch = useDispatch();
 
-  // const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [type, setType] = useState("");
   const [directedTo, setDirectedTo] = useState("");
@@ -18,26 +17,19 @@ const Home = () => {
 
   const numberInfo = useSelector((state) => state.numberReducer.numberInfo);
 
-  // const inputEmail = (e) => {
-  //   setEmail(e.target.value);
-  // }
   const inputJenisDokumen = (e) => {
-    // console.log(jenisDoc, "<<<< jenis dokumen");
     const jenisDoc = JSON.parse(e.target.value);
     setName(jenisDoc.name);
     setType(jenisDoc.type);
     setSelected(e.target.value);
   }
   const inputDirectedTo = (e) => {
-    // console.log(e.target.value, "<<< directed to");
     setDirectedTo(e.target.value);
   }
   const inputRegarding = (e) => {
-    // console.log(e.target.value, "<<<< regarding");
     setRegarding(e.target.value);
   }
   const inputPicName = (e) => {
-    // console.log(e.target.value, "<<<< pic name");
     setPicName(e.target.value);
   }
 
@@ -68,7 +60,8 @@ const Home = () => {
   return (
     <div className="container-fluid">
       <div className="row flex-nowrap">
-        <div className="col">
+        <Navbar />
+        <div className="col ms-5">
           <form onSubmit={handleSubmit}>
             <div className="container mt-5">
 
