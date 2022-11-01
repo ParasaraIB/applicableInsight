@@ -9,6 +9,29 @@ const {
   Admin
 } = require("../models");
 
+function toDecimal(str) {
+  var decimal = 0;
+  var letters = str.split(new RegExp());
+
+  for(var i = letters.length - 1; i >= 0; i--) {
+      decimal += (letters[i].charCodeAt(0) - 64) * (Math.pow(26, letters.length - (i + 1)));
+  }
+
+  return decimal;
+}
+
+function convertToNumberingScheme(number) {
+  var baseChar = ("A").charCodeAt(0),
+      letters  = "";
+
+  do {
+    number -= 1;
+    letters = String.fromCharCode(baseChar + (number % 26)) + letters;
+    number = (number / 26) >> 0; // quick `floor`
+  } while(number > 0);
+
+  return letters;
+}
 class NumberController {
   static async addDocNumber (req, res, next) {
     try {
@@ -139,9 +162,12 @@ class NumberController {
 
       if (!adminAuth) return res.status(403).json({message: "Forbidden"});
 
+      const currentDate = new Date();
+      const currentYearDate = new Date(currentDate.getFullYear().toString());
+
       const {page = 0, type, uker} = req.query;
       const dataLimit = 10;
-      const filter = {deleted: {$ne: true}};
+      const filter = {deleted: {$ne: true}, created_at: {$gte: currentYearDate}};
       if (type) filter["counter_info.type"] = type;
       if (uker) filter["counter_info.uker"] = uker;
 
@@ -168,8 +194,9 @@ class NumberController {
   static async downloadDocNumber (req, res, next) {
     try {
       const currentDate = new Date();
-      const retunredValue = {_id: 1, serial_number: 1, directed_to: 1, regarding: 1, pic_name: 1, doc_number: 1, isBackDate: 1, counter_info: 1};
-      const numberInfos = await NumberInfo.find({}, retunredValue).sort("-_id").lean();
+      const currentYearDate = new Date(currentDate.getFullYear().toString());
+      const retunredValue = {_id: 1, serial_number: 1, directed_to: 1, regarding: 1, pic_name: 1, doc_number: 1, isBackDate: 1, counter_info: 1, created_at: 1};
+      const numberInfos = await NumberInfo.find({created_at: {$gte: currentYearDate}}, retunredValue).sort("-_id").lean();
       const allTypes = await Counter.find().lean();
       const workbook = new ExcelJS.Workbook();
       for (let i = 0; i < allTypes.length; i++) {
@@ -179,6 +206,7 @@ class NumberController {
         worksheet.columns = [
           {header: "Id", key: "_id"},
           {header: "Serial number", key: "serial_number"},
+          {header: "Created at", key: "created_at"},
           {header: "Directed to", key: "directed_to"},
           {header: "Regarding", key: "regarding"},
           {header: "Doc number", key: "doc_number"},
@@ -189,7 +217,7 @@ class NumberController {
         for (let j = 0; j < numberInfos.length; j++) {
           if (allTypes[i].uker && numberInfos[j].counter_info.uker && allTypes[i].uker === numberInfos[j].counter_info.uker && allTypes[i].type === numberInfos[j].counter_info.type) {
             fillers.push(numberInfos[j]);
-          } else if (allTypes[i].type === numberInfos[j].counter_info.type) {
+          } else if (allTypes[i].type === numberInfos[j].counter_info.type && !allTypes[i].uker) {
             fillers.push(numberInfos[j]);
           }
         } 
@@ -201,7 +229,7 @@ class NumberController {
       );
       res.setHeader(
         "Content-Disposition",
-        "attachment; filename=" + `${currentDate}RekapPengambilanNomor.xlsx`
+        "attachment; filename=" + `${currentDate.toISOString().split('T')[0].replaceAll("-", "")}RekapPengambilanNomor.xlsx`
       );
       await workbook.xlsx.write(res);
       return res.status(200).end();
