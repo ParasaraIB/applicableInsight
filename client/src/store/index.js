@@ -6,9 +6,11 @@ import {
 } from "redux";
 import thunk from "redux-thunk";
 
+import adminReducer from "./reducers/adminReducer";
 import numberReducer from "./reducers/numberReducer";
 
 const reducers = combineReducers({
+  adminReducer,
   numberReducer
 });
 

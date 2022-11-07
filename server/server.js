@@ -5,7 +5,8 @@ const express = require("express");
 const cors = require("cors");
 
 const mongooseConnect = require("./config/mongoose");
-const numberRouter = require("./routes/NumberRouter"); 
+const NumberRouter = require("./routes/NumberRouter");
+const AdminRouter = require("./routes/AdminRouter");
 
 const server = express();
 const PORT = process.env.PORT || 3000;
@@ -20,7 +21,9 @@ server.use(cors());
 mongooseConnect();
 
 // Number Routes
-server.use("/number", numberRouter);
+server.use("/number", NumberRouter);
+// Admin Routes
+server.use("/admin", AdminRouter);
 
 server.listen(PORT, () => {
   console.log(`applicableInsight server listening at http://localhost:${PORT}`);

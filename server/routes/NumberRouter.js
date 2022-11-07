@@ -1,8 +1,17 @@
 "use strict";
 
-const numberRouter = require("express").Router();
-const numberController = require("../controllers/numberController");
+const NumberRouter = require("express").Router();
 
-numberRouter.post("/addDocNumber", numberController.addDocNumber);
+const authentication = require("../middlewares/auth");
+const NumberController = require("../controllers/NumberController");
 
-module.exports = numberRouter;
+NumberRouter.post("/addDocNumber", authentication, NumberController.addDocNumber);
+NumberRouter.get("/listDocNumber", authentication, NumberController.listDocNumber);
+NumberRouter.get("/downloadDocNumber", authentication, NumberController.downloadDocNumber);
+NumberRouter.get("/detailDocNumber", authentication, NumberController.detailDocNumber);
+NumberRouter.put("/editDocNumber", authentication, NumberController.editDocNumber);
+NumberRouter.get("/listDocType", authentication, NumberController.listDocType);
+NumberRouter.delete("/deleteDocNumber", authentication, NumberController.deleteDocNumber);
+NumberRouter.get("/listUker", authentication, NumberController.listUker);
+
+module.exports = NumberRouter;
