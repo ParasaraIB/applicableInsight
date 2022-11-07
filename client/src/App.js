@@ -11,6 +11,7 @@ import store from "./store";
 import About from "./pages/About";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
+import NumberDetail from "./pages/NumberDetail";
 
 function App() {
   return (
@@ -27,11 +28,20 @@ function App() {
                 </LoginChecker>
               }
             />
+            <Route path="about" element={<About />} />
             <Route
               path="home"
               element={
                 <ProtectedRoute redirectTo="/">
                   <Home />
+                </ProtectedRoute>
+              }
+            />
+            <Route 
+              path="numberDetail/:id"
+              element={
+                <ProtectedRoute redirectTo="/">
+                  <NumberDetail />
                 </ProtectedRoute>
               }
             />

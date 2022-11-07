@@ -1,16 +1,28 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import jwt_decode from "jwt-decode";
 import { useNavigate } from "react-router-dom";
 
-const Navbar = () => {
+const Navbar = (props) => {
   const navigate = useNavigate();
   const loggedInPic = jwt_decode(localStorage.getItem("access_token"));
+
+  const [renderHomeMenu, setRenderHomeMenu] = useState(false);
 
   const handleLogout = (e) => {
     e.preventDefault();
     localStorage.clear();
     navigate("/");
   }
+
+  const handleBackHome = (e) => {
+    navigate("/home");
+  }
+
+  useEffect(() => {
+    if (props.onNavbarRendered) {
+      setRenderHomeMenu(props.onNavbarRendered());
+    }
+  }, [props])
 
   return (
     <div className="col-auto col-md-3 col-xl-2 px-sm-2 px-0 bg-dark">
@@ -39,6 +51,9 @@ const Navbar = () => {
               id="submenu2"
               data-bs-parent="#menu"
             >
+              {
+                
+              }
               <li className="w-100 mt-2">
                 <span className="d-none d-sm-inline">
                   <small>{loggedInPic.full_name}</small>
@@ -65,8 +80,36 @@ const Navbar = () => {
           className="nav nav-pills flex-column mb-sm-auto mb-0 align-items-center align-items-sm-start"
           id="menu"
         >
+          {
+            renderHomeMenu ? (
+              <li 
+              className="nav-item mb-3"
+              style={{ cursor: "pointer" }}
+              onClick={handleBackHome}
+              >
+                <i className="bi bi-house-door"></i>
+                <span className="ms-2 d-none d-sm-inline">
+                  Home
+                </span>
+              </li>
+            ) : (
+              <></>
+            )
+          }
           <li 
             className="nav-item"
+            style={{ cursor: "pointer" }}
+          >
+              <a href="https://wa.me/6287860414520" target="_blank" rel="noreferrer" style={{color: "white", textDecoration: "none"}}>
+                <i className="bi bi-whatsapp" style={{fontStyle: "normal"}}>
+                  <span className="ms-2 d-none d-sm-inline">
+                    Helpdesk IT
+                  </span>
+                </i>
+              </a>
+          </li>
+          <li 
+            className="nav-item mt-3"
             style={{ cursor: "pointer" }}
             onClick={handleLogout}
           >

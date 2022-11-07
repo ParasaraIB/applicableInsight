@@ -6,7 +6,9 @@ const ExcelJS = require("exceljs");
 const {
   Counter,
   NumberInfo,
-  Admin
+  Admin,
+  DocType,
+  Uker
 } = require("../models");
 
 function toDecimal(str) {
@@ -43,7 +45,7 @@ class NumberController {
 
       if (!adminAuth) return res.status(403).json({message: "Forbidden"});
 
-      const isSendingEmail = false;
+      const isSendingEmail = true;
 
       const {
         name,
@@ -57,10 +59,18 @@ class NumberController {
         mail_to
       } = req.body;
 
+      if (
+        !name ||
+        !type ||
+        !directed_to ||
+        !regarding ||
+        !pic_name ||
+        (isBackDate && !backDate)
+      ) return res.status(400).json({message: "Isilah data dengan lengkap!"});
+
       const currentDate = new Date();
       const year = currentDate.getFullYear();
       const convBackDate = new Date(backDate);
-
       let alphabet = "";
       let numbering = {};
       let docNumberCount = 0;
@@ -68,8 +78,8 @@ class NumberController {
       const counterQuery = {name, type, year};
       if (uker) counterQuery.uker = uker;
       if (isBackDate && convBackDate < currentDate) {
-        const getNumber = await NumberInfo.find({"counter_info.name": name, "counter_info.type": type, "counter_info.year": `${year}`, created_at: {$gte: convBackDate, $lte: currentDate}}).sort({created_at: 1, "backIdentifier.alphabet": 1, }).limit(1);
-        if (!getNumber.length) return res.status(404).json({message: "Please use the normal type"});
+        const getNumber = await NumberInfo.find({"counter_info.name": name, "counter_info.type": type, "counter_info.year": `${year}`, created_at: {$gte: convBackDate, $lte: currentDate}}).sort({created_at: 1}).limit(1);
+        if (!getNumber.length) return res.status(404).json({message: "Gunakan jenis penomoran normal"});
         if (getNumber.length && getNumber[0].backIdentifier) {
           const alphabetIndex = toDecimal(getNumber[0].backIdentifier.alphabet);
           alphabet = convertToNumberingScheme(alphabetIndex + 1);
@@ -84,8 +94,17 @@ class NumberController {
         docNumberCount = `${getNumber[0].serial_number}${alphabet}`;
         promise_all.push(getNumber[0].save());
       } else {
-        numbering = await Counter.findOneAndUpdate(counterQuery, {$inc: {count: 1}}, {new: true, upsert: true});
-        docNumberCount = numbering.count
+        const checkDeletedNumber = await Counter.findOne({...counterQuery, deletedNumber: { $exists: true, $ne: [] }});
+        if (checkDeletedNumber) {
+          numbering = checkDeletedNumber;
+          docNumberCount = numbering.deletedNumber[0];
+          checkDeletedNumber.deletedNumber.shift();
+          checkDeletedNumber.markModified("deletedNumber");
+          promise_all.push(checkDeletedNumber.save());
+        } else {
+          numbering = await Counter.findOneAndUpdate(counterQuery, {$inc: {count: 1}}, {new: true, upsert: true});
+          docNumberCount = numbering.count;
+        }
       }
       
       const convertedYear = `${year + 2}`;
@@ -97,7 +116,7 @@ class NumberController {
       const newNumberInfo = new NumberInfo();
       newNumberInfo.created_at = currentDate;
       newNumberInfo.created_by = adminAuth;
-      newNumberInfo.serial_number = numbering.count;
+      newNumberInfo.serial_number = numbering.deletedNumber && numbering.deletedNumber.length ? numbering.deletedNumber[0] : numbering.count;
       newNumberInfo.directed_to = directed_to;
       newNumberInfo.regarding = regarding;
       newNumberInfo.pic_name = pic_name;
@@ -109,7 +128,7 @@ class NumberController {
 
       await Promise.all(promise_all);
 
-      if (isSendingEmail) {
+      if (isSendingEmail && mail_to) {
         const transporter = nodemailer.createTransport({
           service: "gmail",
           auth: {
@@ -125,11 +144,11 @@ class NumberController {
           html: `
             <h3>Nomor Dokumen Berhasil Diambil!</h3>
             <p>Bapak/Ibu pegawai KPwBI NTT yang berbahagia,</p>
-            <p>Nomor untuk dokumen ${type} adalah <strong>${newNumberInfo.doc_number}</strong></p>
+            <p>Nomor untuk dokumen ${type} anda adalah <strong>${newNumberInfo.doc_number}</strong></p>
             <p>Semoga hari anda menyenangkan.</p>
             <br><br>
             <p>Salam, </p>
-            <p>Ida Bagus - IT OJT</p>
+            <p>Ida Bagus (18176) - IT OJT</p>
           `
         };
   
@@ -143,7 +162,7 @@ class NumberController {
       }
 
       return res.status(201).json({
-        message: "Document number successfully created",
+        message: "Nomor dokumen berhasil diambil",
         newNumberInfo
       });
     } catch (err) {
@@ -164,14 +183,21 @@ class NumberController {
       const currentDate = new Date();
       const currentYearDate = new Date(currentDate.getFullYear().toString());
 
-      const {page = 0, type, uker} = req.query;
+      const {page = 0, search = "", type, uker} = req.query;
       const dataLimit = 10;
       const filter = {deleted: {$ne: true}, created_at: {$gte: currentYearDate}};
       if (type) filter["counter_info.type"] = type;
       if (uker) filter["counter_info.uker"] = uker;
+      if (search) {
+        const reg = new RegExp(search, "i");
+        filter.$or = [
+          {regarding: reg},
+          {directed_to: reg}
+        ];
+      }
 
       const promise_all = await Promise.all([
-        NumberInfo.find(filter).sort("-_id").skip(dataLimit * page).limit(dataLimit).lean(),
+        NumberInfo.find(filter).sort("-created_at").skip(dataLimit * page).limit(dataLimit).lean(),
         NumberInfo.countDocuments(filter)
       ]);
 
@@ -234,6 +260,149 @@ class NumberController {
       return res.status(200).end();
     } catch (err) {
       console.error(err, "<<<< error in downloadDocNumber NumberController");
+      return res.status(500).json({message: "Internal server error"});
+    }
+  }
+
+  static async detailDocNumber (req, res, next) {
+    try {
+      const adminAuth = await Admin.findOne({
+        email: req.payload.email,
+        deleted: {$ne: true}
+      }, {_id: 1, full_name: 1, nip: 1, email: 1}).lean();
+
+      if (!adminAuth) return res.status(403).json({message: "Forbidden"});
+      
+      const {id} = req.query;
+      const docNumber = await NumberInfo.findOne({_id: id, deleted: {$ne: true}}).lean();
+      if (!docNumber) return res.status(404).json({message: "Document number not found"});
+
+      return res.status(200).json({
+        message: "Here's the document number detail",
+        docNumber
+      });
+    } catch (err) {
+      console.error(err, "<<<< error in detailDocNumber NumberController");
+      return res.status(500).json({message: "Internal server error"});
+    }
+  }
+
+  static async editDocNumber (req, res, next) {
+    try {
+      const adminAuth = await Admin.findOne({
+        email: req.payload.email,
+        deleted: {$ne: true}
+      }, {_id: 1, full_name: 1, nip: 1, email: 1}).lean();
+
+      if (!adminAuth) return res.status(403).json({message: "Forbidden"});
+
+      const {
+        _id,
+        directed_to,
+        regarding,
+        pic_name
+      } = req.body;
+
+      if (
+        !directed_to ||
+        !regarding ||
+        !pic_name
+      ) return res.status(400).json({message: "Isilah data dengan lengkap!"});
+
+      const checkDocNumber = await NumberInfo.findOne({_id, deleted: {$ne: true}});
+      if (!checkDocNumber) return res.status(404).json({message: "Document number not found"});
+      
+      const currentDate = new Date();
+      
+      checkDocNumber.directed_to = directed_to;
+      checkDocNumber.regarding = regarding;
+      checkDocNumber.pic_name = pic_name;
+      checkDocNumber.edited_by.push({...adminAuth, edited_at: currentDate});
+      checkDocNumber.markModified("edited_by");
+      const editedDocNumber = await checkDocNumber.save();
+
+      return res.status(200).json({
+        message: "Info nomor dokumen berhasil diedit",
+        editedDocNumber
+      });
+    } catch (err) {
+      console.error (err, "<<<< error in editDocNumber NumberController");
+      return res.status(500).json({message: "Internal server error"});
+    }
+  }
+
+  static async deleteDocNumber (req, res, next) {
+    try {
+      const adminAuth = await Admin.findOne({
+        email: req.payload.email,
+        deleted: {$ne: true}
+      }, {_id: 1, full_name: 1, nip: 1, email: 1}).lean();
+
+      if (!adminAuth) return res.status(403).json({message: "Forbidden"});
+
+      const {_id} = req.body;
+      const currentDate = new Date();
+
+      const docNumber = await NumberInfo.findOneAndUpdate(
+        {_id, deleted: {$ne: true}},
+        {
+          $set: {
+            deleted: true,
+            deleted_by: {...adminAuth, deleted_at: currentDate}
+          }
+        },
+        {new: true}
+      ).lean();
+      if (!docNumber) return res.status(404).json({message: "Document number not found or already deleted"});
+
+      if (!docNumber.isBackDate) await Counter.updateOne({_id: docNumber.counter_info._id}, {$push: {deletedNumber: docNumber.serial_number}});
+
+      return res.status(200).json({
+        message: "Nomor dokumen berhasil dihapus",
+        docNumber
+      });
+    } catch (err) {
+      console.error(err, "<<<< error in deleteDocNumber NumberController");
+      return res.status(500).json({message: "Internal server error"});
+    }
+  }
+
+  static async listDocType (req, res, next) {
+    try {
+      const adminAuth = await Admin.findOne({
+        email: req.payload.email,
+        deleted: {$ne: true}
+      }, {_id: 1, full_name: 1, nip: 1, email: 1}).lean();
+
+      if (!adminAuth) return res.status(403).json({message: "Forbidden"});
+
+      const docTypes = await DocType.find({}, {name: 1, type: 1}).lean();
+      return res.status(200).json({
+        message: "Here's the document types",
+        docTypes
+      });
+    } catch (err) {
+      console.error(err, "<<<< error in listDoctype NumberController");
+      return res.status(500).json({message: "Internal server error"});
+    }
+  }
+
+  static async listUker (req, res, next) {
+    try { 
+      const adminAuth = await Admin.findOne({
+        email: req.payload.email,
+        deleted: {$ne: true}
+      }, {_id: 1, full_name: 1, nip: 1, email: 1}).lean();
+
+      if (!adminAuth) return res.status(403).json({message: "Forbidden"});
+
+      const ukers = await Uker.find({}, {name: 1, abbreviation: 1}).lean();
+      return res.status(200).json({
+        message: "Here's the list of uker",
+        ukers
+      });
+    } catch (err) {
+      console.error(err, "<<<< error in listUker NumberController");
       return res.status(500).json({message: "Internal server error"});
     }
   }

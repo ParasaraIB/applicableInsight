@@ -16,7 +16,7 @@ const numberInfo = new mongoose.Schema({
   isBackDate: Boolean,
   created_by: {},
   edited_by: [],
-  deleted_by: [],
+  deleted_by: {},
   counter_info: {},
   backIdentifier: {},
   mail_to: String

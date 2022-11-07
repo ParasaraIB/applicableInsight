@@ -22,7 +22,7 @@ const admin = new mongoose.Schema({
   },
   super_user: Boolean,
   edited_by: [],
-  deleted_by: [],
+  deleted_by: {},
 
 });
 

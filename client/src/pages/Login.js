@@ -3,6 +3,7 @@ import { useSelector } from "react-redux";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
+import Footer from "../components/Footer";
 
 import { clearToken, loginAdmin } from "../store/actions/adminAction";
 
@@ -63,6 +64,14 @@ const Login = () => {
     <div>
       <div className="container d-flex align-items-center min-vh-100">
         <div className="card mx-auto" style={{ width: "25rem" }}>
+          <div className="m-3 row mx-auto">
+            <div className="col">
+              <lottie-player src="https://assets1.lottiefiles.com/private_files/lf30_vamrx5qj.json" background="transparent" speed="1" style={{width: "150px", height: "150px"}} loop autoplay></lottie-player>
+            </div>
+          </div>
+          <div className="row mx-auto">
+            <h4>M-Doc</h4>
+          </div>
           <form onSubmit={handleSubmit}>
             <div className="m-3 row">
               <div className="col">
@@ -95,6 +104,9 @@ const Login = () => {
             </div>
           </form>
         </div>
+      </div>
+      <div className="fixed-bottom">
+        <Footer />
       </div>
     </div>
   );
