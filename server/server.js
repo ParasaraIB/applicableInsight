@@ -3,6 +3,7 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const fileUpload = require("express-fileupload");
 
 const mongooseConnect = require("./config/mongoose");
 const NumberRouter = require("./routes/NumberRouter");
@@ -19,6 +20,13 @@ server.use(express.urlencoded({extended: false}));
 server.use(cors());
 
 mongooseConnect();
+
+// Upload
+server.use(
+  fileUpload({
+    limits: { fileSize: 4 * 1024 * 1024 }
+  })
+);
 
 // Number Routes
 server.use("/number", NumberRouter);

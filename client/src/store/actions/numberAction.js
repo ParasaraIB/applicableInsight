@@ -11,7 +11,8 @@ import {
   DETAIL_DOCNUMBER,
   DELETE_DOCNUMBER,
   EDIT_DOCNUMBER,
-  SHOW_LOADING
+  SHOW_LOADING,
+  UPLOAD_DOCUMENT
 } from "../actionTypes";
 
 export const addDocNumber = (data) => {
@@ -232,5 +233,37 @@ export const showLoading = (data) => {
       type: SHOW_LOADING,
       payload: data
     });
+  }
+}
+
+export const uploadToOneDrive = (data) => {
+  return (dispatch, getState) => {
+    axios({
+      method: "POST",
+      url: `${API_URL}/number/uploadToOneDrive`,
+      data,
+      headers: {
+        access_token: localStorage.getItem("access_token")
+      }
+    })
+      .then(({data}) => {
+        console.log(data, "<<<< response.data")
+        dispatch({
+          type: UPLOAD_DOCUMENT,
+          payload: data
+        });
+        dispatch({
+          type: SHOW_LOADING,
+          payload: false
+        });
+      })
+      .catch(err => {
+        console.error(err.response, "<<<< error in uploadToOneDrive numberAction");
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "error in uploadToOneDrive numberAction"
+        });
+      });
   }
 }
