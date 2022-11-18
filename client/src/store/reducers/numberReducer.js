@@ -1,5 +1,5 @@
 import {
-  ADD_COUNTER, DELETE_DOCNUMBER, DETAIL_DOCNUMBER, EDIT_DOCNUMBER, LIST_DOCNUMBER, LIST_DOCTYPE, LIST_UKER, SET_PAGE, SHOW_LOADING, UPLOAD_DOCUMENT
+  ADD_COUNTER, DELETE_DOCNUMBER, DELETE_DOCUMENT, DETAIL_DOCNUMBER, EDIT_DOCNUMBER, LIST_DOCNUMBER, LIST_DOCTYPE, LIST_UKER, SET_PAGE, SHOW_LOADING, UPLOAD_DOCUMENT
 } from "../actionTypes";
 
 const initialState = {
@@ -71,7 +71,12 @@ const numberReducer = (state=initialState, action) => {
       return {
         ...state,
         detailDocNumber: action.payload.docNumber
-      }
+      };
+    case DELETE_DOCUMENT:
+      return {
+        ...state,
+        detailDocNumber: action.payload.returnedDetail
+      };
     default:
       return state;
   }

@@ -500,6 +500,64 @@ class NumberController {
       return res.status(500).json({message: "Internal server error"});
     }
   }
+
+  static async deleteOnOneDrive(req, res, next) {
+    try {
+      const adminAuth = await Admin.findOne({
+        email: req.payload.email,
+        deleted: {$ne: true}
+      }, {_id: 1, full_name: 1, nip: 1, email: 1}).lean();
+
+      if (!adminAuth) return res.status(403).json({message: "Forbidden"});
+
+      const {
+        _id,
+        oneDrive_ItemId,
+      } = req.body;
+
+      const currentDate = new Date();
+      const docInfo = await NumberInfo.findOne({_id, deleted: {$ne: true}});
+
+      if (!docInfo) return res.status(404).json({message: "Document number not found"});
+
+      const { data: tokenData } = await axios({
+        method: "POST",
+        url: "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+        headers: {
+          "Content-type": "application/x-www-form-urlencoded"
+        },
+        data: {
+          redirect_uri: 'http://localhost/dashboard',
+          client_id: process.env.ONEDRIVE_CLIENT_ID,
+          client_secret: process.env.ONEDRIVE_CLIENT_SECRET,
+          refresh_token: process.env.ONEDRIVE_REFRESH_TOKEN,
+          grant_type: "refresh_token"
+        }
+      });
+      const { data: deleteData } = await axios({
+        method: "DELETE",
+        url: `https://graph.microsoft.com/v1.0/drive/items/${oneDrive_ItemId}`,
+        headers: {
+          'Authorization': "Bearer " + tokenData.access_token,
+          "Content-type": "application/json"
+        }
+      });
+      const filteredDocLinks = docInfo.document_links.filter(doc => doc.oneDrive_ItemId !== oneDrive_ItemId);
+      docInfo.document_links = filteredDocLinks;
+      docInfo.markModified("document_links");
+      docInfo.edited_by.push({...adminAuth, edited_at: currentDate, action: "deleteOnOneDrive"});
+      docInfo.markModified("edited_by");
+      await docInfo.save();
+  
+      return res.status(200).json({
+        message: "Document deleted successfully",
+        returnedDetail: docInfo
+      });
+    } catch (err) {
+      console.error(err, "<<<< error in deleteOnOneDrive NumberController");
+      return res.status(500).json({message: "Internal server error"});
+    }
+  }
 }
 
 module.exports = NumberController;

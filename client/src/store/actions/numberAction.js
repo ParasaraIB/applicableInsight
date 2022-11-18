@@ -12,7 +12,8 @@ import {
   DELETE_DOCNUMBER,
   EDIT_DOCNUMBER,
   SHOW_LOADING,
-  UPLOAD_DOCUMENT
+  UPLOAD_DOCUMENT,
+  DELETE_DOCUMENT
 } from "../actionTypes";
 
 export const addDocNumber = (data) => {
@@ -247,7 +248,6 @@ export const uploadToOneDrive = (data) => {
       }
     })
       .then(({data}) => {
-        console.log(data, "<<<< response.data")
         dispatch({
           type: UPLOAD_DOCUMENT,
           payload: data
@@ -256,9 +256,54 @@ export const uploadToOneDrive = (data) => {
           type: SHOW_LOADING,
           payload: false
         });
+        Swal.fire({
+          position: "center",
+          icon: "success",
+          title: "Dokumen berhasil diupload",
+          showConfirmButton: false,
+          timer: 1500
+        });
       })
       .catch(err => {
         console.error(err.response, "<<<< error in uploadToOneDrive numberAction");
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "error in uploadToOneDrive numberAction"
+        });
+      });
+  }
+}
+
+export const deleteOnOneDrive = (data) => {
+  return (dispatch, getState) => {
+    axios({
+      method: "DELETE",
+      url: `${API_URL}/number/deleteOnOneDrive`,
+      data,
+      headers: {
+        access_token: localStorage.getItem("access_token")
+      }
+    })
+      .then(({data}) => {
+        dispatch({
+          type: DELETE_DOCUMENT,
+          payload: data
+        });
+        dispatch({
+          type: SHOW_LOADING,
+          payload: false
+        });
+        Swal.fire({
+          position: "center",
+          icon: "success",
+          title: "Dokumen berhasil dihapus",
+          showConfirmButton: false,
+          timer: 1500
+        });
+      })
+      .catch(err => {
+        console.error(err.response, "<<<< error in deleteOnOneDrive numberAction");
         Swal.fire({
           icon: "error",
           title: "Error",

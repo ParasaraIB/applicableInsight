@@ -14,5 +14,6 @@ NumberRouter.get("/listDocType", authentication, NumberController.listDocType);
 NumberRouter.delete("/deleteDocNumber", authentication, NumberController.deleteDocNumber);
 NumberRouter.get("/listUker", authentication, NumberController.listUker);
 NumberRouter.post("/uploadToOneDrive", authentication, NumberController.uploadToOneDrive);
+NumberRouter.delete("/deleteOnOneDrive", authentication, NumberController.deleteOnOneDrive);
 
 module.exports = NumberRouter;

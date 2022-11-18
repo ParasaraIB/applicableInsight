@@ -117,7 +117,6 @@ const Home = () => {
         backDate,
         mail_to: mailTo
       };
-      console.log(newDocNumber, "<<<< newDocNumber");
       dispatch(addDocNumber(newDocNumber));
       setName("");
       setUker("");
@@ -137,7 +136,6 @@ const Home = () => {
   useEffect(() => {
     if (numberInfo) {
       setDocNum(numberInfo);
-      console.log(numberInfo, "<<< numInfo");
     }
     dispatch(listDocType());
     dispatch(listUker());
