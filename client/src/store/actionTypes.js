@@ -1,5 +1,6 @@
 // API URL
-export const API_URL = "http://localhost:3000";
+// export const API_URL = "http://localhost:3000";
+export const API_URL = "https://emerald-skunk-tux.cyclic.app";
 
 // NUMBER INFO
 export const ADD_COUNTER = "ADD_COUNTER";
@@ -17,3 +18,4 @@ export const DELETE_DOCUMENT = "DELETE_DOCUMENT";
 // ADMIN
 export const LOGIN_ADMIN = "LOGIN_ADMIN";
 export const CLEAR_TOKEN = "CLEAR_TOKEN";
+export const SHOW_LOGINLOADING = "SHOW_LOGINLOADING";
