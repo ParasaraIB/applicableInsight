@@ -40,6 +40,17 @@ function convertToNumberingScheme(number) {
 }
 
 class NumberController {
+  static async testLive (req, res, next) {
+    try {
+      const currentDate = new Date();
+      return res.status(200).json({message: `Hello there ${currentDate}`});
+    }
+    catch (err) {
+      console.error(err, "<<<< errorn in testLive NumberController");
+      return res.status(500).json({message: "Internal server error"});
+    }
+  }
+
   static async addDocNumber (req, res, next) {
     try {
       const adminAuth = await Admin.findOne({

@@ -5,6 +5,7 @@ const NumberRouter = require("express").Router();
 const authentication = require("../middlewares/auth");
 const NumberController = require("../controllers/NumberController");
 
+NumberRouter.get("/", NumberController.testLive);
 NumberRouter.post("/addDocNumber", authentication, NumberController.addDocNumber);
 NumberRouter.get("/listDocNumber", authentication, NumberController.listDocNumber);
 NumberRouter.get("/downloadDocNumber", authentication, NumberController.downloadDocNumber);
