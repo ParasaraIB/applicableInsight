@@ -1,16 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { useDispatch } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import Loader from "../components/Loader";
 import Navbar from "../components/Navbar";
-import { deleteDocNumber, detailDocNumber, editDocNumber } from "../store/actions/numberAction";
+import { deleteDocNumber, deleteOnOneDrive, detailDocNumber, editDocNumber, showLoading, uploadToOneDrive } from "../store/actions/numberAction";
 
 const NumberDetail = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const {id} = useParams();
+  const hiddenFileInput = useRef(null);
 
   const docInfo = useSelector(state => state.numberReducer.detailDocNumber);
   const isShowLoading = useSelector(state => state.numberReducer.isShowLoading);
@@ -105,6 +106,51 @@ const NumberDetail = () => {
       setEnableRegarding(false);
       setEnablePicName(false);
     }
+  }
+
+  const handleUpload = (e) => {
+    hiddenFileInput.current.click();
+  }
+
+  const handleHiddenFileInput = (e) => {
+    if(e.target.files.length > 1) {
+      Swal.fire({
+        icon: "error",
+        title: "Jumlah File Melebihi Kapasitas",
+      });
+    } else {
+      const fileUploaded = e.target.files[0];
+      if (fileUploaded.size > 4 * 1024 * 1024) {
+        Swal.fire({
+          icon: "error",
+          title: "Ukuran File Melebihi 4 MB",
+        });
+      } else {
+        const data = new FormData();
+        data.append("file", fileUploaded);
+        data.append("fileName", fileUploaded.name);
+        data.append("_id", id);
+        dispatch(showLoading(true));
+        dispatch(uploadToOneDrive(data));
+      }
+    }
+  }
+
+  const handleDeleteDocs = (e, oneDrive_ItemId) => {
+    Swal.fire({
+      title: "Hapus dokumen?",
+      text: "Cek kembali dokumen yang akan dihapus",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Ya, Hapus"
+    }).then((result) => {
+      if (result.isConfirmed) {
+        dispatch(showLoading(true));
+        dispatch(deleteOnOneDrive({_id: id, oneDrive_ItemId}));
+      }
+    });
   }
 
   useEffect(() => {
@@ -248,9 +294,55 @@ const NumberDetail = () => {
                 </div>
               </div>
               <div className="row mt-3">
+                <div className="col-2">
+                  <label>Link Dokumen</label>
+                </div>
+                <div className="col-4">
+                  {
+                    (docInfo.document_links && docInfo.document_links.length) ? (
+                      <>
+                        {
+                          docInfo.document_links.map ((el, index) => {
+                            return (
+                              <div className="container p-0" key={index}>
+                                <div className={index > 0 ? "row mt-2" : "row"}>
+                                  <div className="col d-flex">
+                                    <a href={el.webUrl} target="_blank" rel="noreferrer">{el.webUrl}</a>
+                                    <button type="submit" className="btn btn-sm btn-warning ms-2" onClick={(e) => handleDeleteDocs(e, el.oneDrive_ItemId)}>
+                                      <i className="bi bi-trash3"></i>
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })
+                        }
+                      </>
+                    ): (
+                      <></>
+                    )
+                  }
+                  <button type="submit" className="btn btn-primary btn-sm mt-3" onClick={handleUpload} disabled={docInfo.document_links && docInfo.document_links.length >= 3 ? true : false}>
+                    <i className="bi bi-file-earmark-arrow-up"></i>Upload Dokumen
+                  </button>
+                  <input 
+                    name="file"
+                    type="file"
+                    ref={hiddenFileInput}
+                    onChange={handleHiddenFileInput}
+                    style={{display: "none"}}
+                  />
+                  <p className="text-muted">
+                    <em>
+                      <small>*Ukuran file maksimal 4 MB</small>
+                    </em>
+                  </p>
+                </div>
+              </div>
+              <div className="row mt-3">
                 <div className="col-8 d-flex justify-content-end">
                   <button type="submit" className="btn btn-danger" onClick={handleDelete}>
-                  <i className="bi bi-trash3"></i>Delete
+                    <i className="bi bi-trash3"></i>Delete
                   </button>
                 </div>
               </div>

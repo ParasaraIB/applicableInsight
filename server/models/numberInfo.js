@@ -19,7 +19,8 @@ const numberInfo = new mongoose.Schema({
   deleted_by: {},
   counter_info: {},
   backIdentifier: {},
-  mail_to: String
+  mail_to: String,
+  document_links: []
 });
 
 const model = mongoose.model("NumberInfo", numberInfo);

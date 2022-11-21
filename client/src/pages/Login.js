@@ -13,6 +13,7 @@ const Login = () => {
 
   const [email, setEmail] = useState("manikparasara@gmail.com");
   const [password, setPassword] = useState("kantorpusat2023");
+  const [showPassword, setShowPassword] = useState(false);
 
   const inputEmail = (e) => {
     setEmail(e.target.value);
@@ -35,11 +36,12 @@ const Login = () => {
         email,
         password
       };
-
       dispatch(loginAdmin(loginPayload));
-      setEmail("");
-      setPassword("");
     }
+  }
+
+  const handleShowPassword = (e) => {
+    setShowPassword(showPassword ? false : true);
   }
 
   const access_token = useSelector(state => state.adminReducer.access_token);
@@ -87,12 +89,18 @@ const Login = () => {
             <div className="m-3 row">
               <div className="col">
                 <label className="form-label">Password</label>
-                <input
-                  type="password"
-                  className="form-control"
-                  value={password}
-                  onChange={inputPassword}
-                />
+                <div className="input-group">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    className="form-control"
+                    value={password}
+                    onChange={inputPassword}
+                  />
+                  <span className="input-group-text">
+                    <i className={showPassword ? "bi bi-eye-fill" : "bi bi-eye-slash-fill"} style={{cursor: "pointer"}} onClick={handleShowPassword}></i>
+                  </span>
+                </div>
+                
               </div>
             </div>
             <div className="m-3 row">

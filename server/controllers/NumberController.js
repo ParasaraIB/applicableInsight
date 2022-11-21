@@ -2,6 +2,10 @@
 
 const nodemailer = require("nodemailer");
 const ExcelJS = require("exceljs");
+const fs = require('fs');
+const mime = require('mime');
+const request = require("request");
+const axios = require("axios");
 
 const {
   Counter,
@@ -84,7 +88,7 @@ class NumberController {
           const alphabetIndex = toDecimal(getNumber[0].backIdentifier.alphabet);
           alphabet = convertToNumberingScheme(alphabetIndex + 1);
         } else {
-          alphabet = "A"
+          alphabet = "A";
         }
         numbering = {... await Counter.findOne(counterQuery).lean()};
         
@@ -403,6 +407,154 @@ class NumberController {
       });
     } catch (err) {
       console.error(err, "<<<< error in listUker NumberController");
+      return res.status(500).json({message: "Internal server error"});
+    }
+  }
+
+  static async uploadToOneDrive(req, res, next) {
+    try {
+      const adminAuth = await Admin.findOne({
+        email: req.payload.email,
+        deleted: {$ne: true}
+      }, {_id: 1, full_name: 1, nip: 1, email: 1}).lean();
+
+      if (!adminAuth) return res.status(403).json({message: "Forbidden"});
+
+      const {
+        _id,
+        fileName // Filename you want to upload on your local PC
+      } = req.body;
+
+      const currentDate = new Date();
+      const year = currentDate.getFullYear();
+
+      const onedrive_folder = `mDocKpa${year}`; // Folder name on OneDrive
+      const onedrive_filename = `${currentDate.toISOString().split('T')[0].replaceAll("-", "")}_${fileName}`; // Filename on OneDrive
+      const file = req.files.file
+      const fileBuffer = req.files.file.data;
+
+      const docToUpdate = await NumberInfo.findOne({_id});
+      if (!docToUpdate) return res.status(404).json({message: "Document not found"});
+      if (docToUpdate.document_links && docToUpdate.document_links.length >=3) return res.status(400).json({message: "Number of file allowed is reached"});
+
+      let returnedToken = "";
+
+      request.post({
+          url: 'https://login.microsoftonline.com/common/oauth2/v2.0/token',
+          form: {
+              redirect_uri: 'http://localhost/dashboard',
+              client_id: process.env.ONEDRIVE_CLIENT_ID,
+              client_secret: process.env.ONEDRIVE_CLIENT_SECRET,
+              refresh_token: process.env.ONEDRIVE_REFRESH_TOKEN,
+              grant_type: "refresh_token"
+          },
+      }, function(error, response, body) {
+        returnedToken = JSON.parse(body).access_token;
+        request.put({
+            url: 'https://graph.microsoft.com/v1.0/drive/root:/' + onedrive_folder + '/' + onedrive_filename + ':/content',
+            headers: {
+              'Authorization': "Bearer " + returnedToken,
+              'Content-Type': mime.getType(file), // When you use old version, please modify this to "mime.lookup(file)",
+            },
+            body: fileBuffer,
+        }, async function (er, re, bo) {
+            const parsedBody = JSON.parse(bo);
+            console.log(parsedBody, "<<<< parsedBody");
+            if (parsedBody.error) {
+              return res.status(400).json({
+                message: "Error in upload to one drive",
+                returnedData: parsedBody
+              });
+            }
+            const { data } = await axios({
+              method: "POST",
+              url: `https://graph.microsoft.com/v1.0/drive/items/${parsedBody.id}/createLink`,
+              headers: {
+                'Authorization': "Bearer " + returnedToken,
+                "Content-type": "application/json"
+              },
+              data: {
+                type: "view",
+                scope: "anonymous"
+              }
+            });
+
+            if (!docToUpdate.document_links && !docToUpdate.document_links.length) docToUpdate.document_links = [];
+            docToUpdate.document_links.push({
+              oneDrive_ItemId: parsedBody.id,
+              uploaded_by: adminAuth,
+              uploaded_at: currentDate,
+              webUrl: data.link.webUrl
+            });
+            docToUpdate.markModified("document_links");
+            await docToUpdate.save();
+            return res.status(200).json({
+              message: "File berhasil diupload",
+              returnedData: parsedBody,
+              docNumber: docToUpdate
+            });
+        });
+      });
+    } catch (err) {
+      console.error(err, "<<<< error in uploadToOneDrive NumberController");
+      return res.status(500).json({message: "Internal server error"});
+    }
+  }
+
+  static async deleteOnOneDrive(req, res, next) {
+    try {
+      const adminAuth = await Admin.findOne({
+        email: req.payload.email,
+        deleted: {$ne: true}
+      }, {_id: 1, full_name: 1, nip: 1, email: 1}).lean();
+
+      if (!adminAuth) return res.status(403).json({message: "Forbidden"});
+
+      const {
+        _id,
+        oneDrive_ItemId,
+      } = req.body;
+
+      const currentDate = new Date();
+      const docInfo = await NumberInfo.findOne({_id, deleted: {$ne: true}});
+
+      if (!docInfo) return res.status(404).json({message: "Document number not found"});
+
+      const { data: tokenData } = await axios({
+        method: "POST",
+        url: "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+        headers: {
+          "Content-type": "application/x-www-form-urlencoded"
+        },
+        data: {
+          redirect_uri: 'http://localhost/dashboard',
+          client_id: process.env.ONEDRIVE_CLIENT_ID,
+          client_secret: process.env.ONEDRIVE_CLIENT_SECRET,
+          refresh_token: process.env.ONEDRIVE_REFRESH_TOKEN,
+          grant_type: "refresh_token"
+        }
+      });
+      const { data: deleteData } = await axios({
+        method: "DELETE",
+        url: `https://graph.microsoft.com/v1.0/drive/items/${oneDrive_ItemId}`,
+        headers: {
+          'Authorization': "Bearer " + tokenData.access_token,
+          "Content-type": "application/json"
+        }
+      });
+      const filteredDocLinks = docInfo.document_links.filter(doc => doc.oneDrive_ItemId !== oneDrive_ItemId);
+      docInfo.document_links = filteredDocLinks;
+      docInfo.markModified("document_links");
+      docInfo.edited_by.push({...adminAuth, edited_at: currentDate, action: "deleteOnOneDrive"});
+      docInfo.markModified("edited_by");
+      await docInfo.save();
+  
+      return res.status(200).json({
+        message: "Document deleted successfully",
+        returnedDetail: docInfo
+      });
+    } catch (err) {
+      console.error(err, "<<<< error in deleteOnOneDrive NumberController");
       return res.status(500).json({message: "Internal server error"});
     }
   }
