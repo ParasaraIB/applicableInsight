@@ -4,7 +4,8 @@ import Swal from "sweetalert2";
 import {
   API_URL,
   LOGIN_ADMIN,
-  CLEAR_TOKEN
+  CLEAR_TOKEN,
+  SHOW_LOGINLOADING,
 } from "../actionTypes";
 
 export const loginAdmin = (data) => {
@@ -18,6 +19,10 @@ export const loginAdmin = (data) => {
         dispatch({
           type: LOGIN_ADMIN,
           payload: data.access_token
+        });
+        dispatch({
+          type: SHOW_LOGINLOADING,
+          payload: false
         });
       })
       .catch(err => {
@@ -34,5 +39,14 @@ export const loginAdmin = (data) => {
 export const clearToken = () => {
   return {
     type: CLEAR_TOKEN
+  }
+}
+
+export const showLoginLoading = (data) => {
+  return (dispatch, getState) => {
+    dispatch({
+      type: SHOW_LOGINLOADING,
+      payload: data
+    });
   }
 }

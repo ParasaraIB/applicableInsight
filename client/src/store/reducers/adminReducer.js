@@ -1,10 +1,12 @@
 import {
   LOGIN_ADMIN,
-  CLEAR_TOKEN
+  CLEAR_TOKEN,
+  SHOW_LOGINLOADING
 } from "../actionTypes";
 
 const initialState = {
-  access_token: null
+  access_token: null,
+  showLoginLoading: false
 };
 
 const adminReducer = (state=initialState, action) => {
@@ -18,6 +20,11 @@ const adminReducer = (state=initialState, action) => {
       return {
         ...state,
         access_token: null
+      };
+    case SHOW_LOGINLOADING:
+      return {
+        ...state,
+        showLoginLoading: action.payload
       };
     default:
       return state;
