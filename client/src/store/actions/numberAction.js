@@ -252,10 +252,6 @@ export const uploadToOneDrive = (data) => {
           type: UPLOAD_DOCUMENT,
           payload: data
         });
-        dispatch({
-          type: SHOW_LOADING,
-          payload: false
-        });
         Swal.fire({
           position: "center",
           icon: "success",
@@ -270,6 +266,12 @@ export const uploadToOneDrive = (data) => {
           icon: "error",
           title: "Error",
           text: "error in uploadToOneDrive numberAction"
+        });
+      })
+      .finally(() => {
+        dispatch({
+          type: SHOW_LOADING,
+          payload: false
         });
       });
   }
@@ -290,10 +292,6 @@ export const deleteOnOneDrive = (data) => {
           type: DELETE_DOCUMENT,
           payload: data
         });
-        dispatch({
-          type: SHOW_LOADING,
-          payload: false
-        });
         Swal.fire({
           position: "center",
           icon: "success",
@@ -308,6 +306,12 @@ export const deleteOnOneDrive = (data) => {
           icon: "error",
           title: "Error",
           text: "error in uploadToOneDrive numberAction"
+        });
+      })
+      .finally(() => {
+        dispatch({
+          type: SHOW_LOADING,
+          payload: false
         });
       });
   }

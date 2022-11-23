@@ -26,7 +26,11 @@ export const loginAdmin = (data) => {
         });
       })
       .catch(err => {
-        console.error(err.response, "<<<< error ini loginAdmin adminAction");
+        console.error(err.response, "<<<< error in loginAdmin adminAction");
+        dispatch({
+          type: SHOW_LOGINLOADING,
+          payload: false
+        });
         Swal.fire({
           icon: "error",
           title: "Invalid",

@@ -50,10 +50,12 @@ const NumberList = () => {
       .then(({data}) => {
         const filename = `${currentDate.toISOString().split('T')[0].replaceAll("-", "")}RekapPengambilanNomor.xlsx`;
         FileDownload(data, filename);
-        setIsDownloadLoading(false);
       })
       .catch(err => {
         console.error(err, "<<< error in handleDownloadRekap");
+      })
+      .finally(() => {
+        setIsDownloadLoading(false);
       });
   }
 
@@ -64,6 +66,7 @@ const NumberList = () => {
         search
       }
       setQParams(newQParams);
+      dispatch(showLoading(true));
       dispatch(listDocnumber(newQParams));
     }
   }
