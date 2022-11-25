@@ -5,12 +5,16 @@ import NumberList from "../components/NumberList";
 import Footer from "../components/Footer";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import jwt_decode from "jwt-decode";
 
 import {addDocNumber, listDocType, listUker} from "../store/actions/numberAction";
 import Swal from "sweetalert2";
+import BarChart from "../components/BarChart";
 
 const Home = () => {
   const dispatch = useDispatch();
+
+  const loggedInPic = jwt_decode(localStorage.getItem("access_token"));
 
   const [name, setName] = useState("");
   const [type, setType] = useState("");
@@ -145,11 +149,11 @@ const Home = () => {
     <div className="container-fluid">
       {
         showClipboardMsg ? (
-        <div className="row position-fixed" style={{backgroundColor: "#FFD966", width: "100%"}}>
-          <div className="col text-center" style={{color: "#843C0C"}}>
+        <div className="row position-fixed" style={{backgroundColor: "#01294b", width: "100%"}}>
+          <div className="col text-center" style={{color: "#ffffff"}}>
             <strong>Nomor dokumen berhasil di salin ke clipboard!</strong>
           </div>
-          <button type="button" className="btn-close" aria-label="Close" onClick={handleNotifClose}></button>
+          <button type="button" className="btn-close btn-close-white" aria-label="Close" onClick={handleNotifClose}></button>
         </div>
         ) : (
           <></>
@@ -157,15 +161,15 @@ const Home = () => {
       }
       <div className="row flex-nowrap">
         <Navbar />
-        <div className="col ms-5">
-          <form onSubmit={handleSubmit}>
-            <div className="container mt-5">
-
+        <div className="col mt-5">
+          {loggedInPic.visitor && <h6 className="text-danger mb-5">NB: Login sebagai visitor hanya dapat melihat isi situs. Hubungi admin di menu Helpdesk IT untuk request akses.</h6>}
+          <form onSubmit={handleSubmit} className="d-flex">
+            <div className="container">
               <div className="row">
-                <div className="col-2">
+                <div className="col-4">
                   <label>Jenis Dokumen</label>
                 </div>
-                <div className="col-4">
+                <div className="col-8">
                   <select className="form-select" aria-label="Default select example" onChange={inputJenisDokumen} value={selected} required>
                     <option value="" disabled>Jenis Dokumen...</option>
                     {
@@ -182,10 +186,10 @@ const Home = () => {
               {
                 isM02 ? (
                   <div className="row mt-3">
-                    <div className="col-2">
+                    <div className="col-4">
                       <label>Unit Kerja</label>
                     </div>
-                    <div className="col-4">
+                    <div className="col-8">
                       <select className="form-select" aria-label="Defalult select example" onChange={inputUker} value={selectedUker} required>
                         <option value="" disabled>Unit Kerja...</option>
                         {
@@ -204,19 +208,19 @@ const Home = () => {
               }
 
               <div className="row mt-3">
-                <div className="col-2">
+                <div className="col-4">
                   <label>Kepada</label>
                 </div>
-                <div className="col-4">
+                <div className="col-8">
                   <input type="text" className="form-control" aria-label="Kepada" aria-describedby="basic-addon1" value={directedTo} onChange={inputDirectedTo} required />
                 </div>
               </div>
 
               <div className="row mt-3">
-                <div className="col-2">
+                <div className="col-4">
                   <label>Perihal</label>
                 </div>
-                <div className="col-4">
+                <div className="col-8">
                   <div className="form-group">
                     <textarea className="form-control" id="exampleFormControlTextarea1" rows="3" value={regarding} onChange={inputRegarding}></textarea>
                   </div>
@@ -224,23 +228,23 @@ const Home = () => {
               </div>
 
               <div className="row mt-3">
-                <div className="col-2">
+                <div className="col-4">
                   <label>Nama PIC</label>
                 </div>
-                <div className="col-4">
+                <div className="col-8">
                   <input type="text" className="form-control" aria-label="Nama PIC" aria-describedby="basic-addon1" value={picName} onChange={inputPicName} required />
                 </div>
               </div>
 
               <div className="row mt-3">
-                <div className="col-2">
+                <div className="col-4">
                   <label>Jenis Penomoran</label>
                 </div>
-                <div className="col-2">
+                <div className="col-4">
                   <input className="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio1" value="false" checked={isBackDate === "false"} onChange={inputIsBackdate} required />
                   <label className="form-check-label ms-2" htmlFor="inlineRadio1">NORMAL</label>
                 </div>
-                <div className="col-2">
+                <div className="col-4">
                   <input className="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio2" value="true" checked={isBackDate === "true"} onChange={inputIsBackdate} required />
                   <label className="form-check-label ms-2" htmlFor="inlineRadio2">BACKDATE</label>
                 </div>
@@ -249,10 +253,10 @@ const Home = () => {
               {
                 isBackDate === "true" ? (
                   <div className="row mt-3">
-                    <div className="col-2">
+                    <div className="col-4">
                       <label>Tanggal Backdate</label>
                     </div>
-                    <div className="col-4">
+                    <div className="col-8">
                       <DatePicker selected={backDate} onChange={inputBackDate} />
                     </div>
                   </div>
@@ -262,14 +266,14 @@ const Home = () => {
               }
 
               <div className="row mt-3">
-                <div className="col-2">
+                <div className="col-4">
                   <label>Kirimkan Nomor</label>
                 </div>
-                <div className="col-2">
+                <div className="col-4">
                   <input className="form-check-input" type="radio" name="inlineRadioOptions2" id="inlineRadio3" value="true" checked={isSendEmail === "true"} onChange={inputSendEmail} required />
                   <label className="form-check-label ms-2" htmlFor="inlineRadio3">Ya</label>
                 </div>
-                <div className="col-2">
+                <div className="col-4">
                   <input className="form-check-input" type="radio" name="inlineRadioOptions2" id="inlineRadio4" value="false" checked={isSendEmail === "false"} onChange={inputSendEmail} required />
                   <label className="form-check-label ms-2" htmlFor="inlineRadio4">Tidak</label>
                 </div>
@@ -278,10 +282,10 @@ const Home = () => {
               {
                 isSendEmail === "true" ? (
                   <div className="row mt-3">
-                    <div className="col-2">
+                    <div className="col-4">
                       <label>Email</label>
                     </div>
-                    <div className="col-4">
+                    <div className="col-8">
                       <input type="email" className="form-control" id="exampleFormControlInput1" placeholder="address@example.com" value={mailTo} onChange={inputMailTo} />
                     </div>
                   </div>
@@ -291,8 +295,8 @@ const Home = () => {
               }
 
               <div className="row mt-3">
-                <div className="col-6 d-flex justify-content-end">
-                  <button type="submit" className="btn btn-dark">
+                <div className="col-12 d-flex justify-content-end">
+                  <button type="submit" className="btn" style={{backgroundColor: "#045498", color: "white"}} disabled={loggedInPic.visitor ? true : false}>
                     <i className="bi bi-arrow-repeat"></i>Generate
                   </button>
                 </div>
@@ -301,11 +305,11 @@ const Home = () => {
               {
                 docNum ? (
                   <div className="row mt-5">
-                    <div className="col-3">
+                    <div className="col-8">
                       <p>Nomor Dokumen Anda: <strong id="copas">{docNum.doc_number}</strong>
                       </p>
                     </div>
-                    <div className="col-1">
+                    <div className="col-2">
                       <button type="button" className="btn btn-outline-secondary btn-clipboard" data-clipboard-target="#copas" onClick={handleClipboardClick}>
                         <i className="bi bi-clipboard2"></i>
                       </button>
@@ -316,6 +320,9 @@ const Home = () => {
                 )
               }
 
+            </div>
+            <div className="container">
+              <BarChart />
             </div>
           </form>
           <div className="row mt-5 d-flex justify-content-center">

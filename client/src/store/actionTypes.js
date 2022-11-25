@@ -1,6 +1,6 @@
 // API URL
-// export const API_URL = "http://localhost:3000";
-export const API_URL = "https://gusraja.click";
+export const API_URL = "http://localhost:3000";
+// export const API_URL = "https://gusraja.click";
 
 // NUMBER INFO
 export const ADD_COUNTER = "ADD_COUNTER";
@@ -14,6 +14,7 @@ export const EDIT_DOCNUMBER = "EDIT_DOCNUMBER";
 export const SHOW_LOADING = "SHOW_LOADING";
 export const UPLOAD_DOCUMENT = "UPLOAD_DOCUMENT";
 export const DELETE_DOCUMENT = "DELETE_DOCUMENT";
+export const LIST_COUNTER = "LIST_COUNTER";
 
 // ADMIN
 export const LOGIN_ADMIN = "LOGIN_ADMIN";

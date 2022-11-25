@@ -2,7 +2,6 @@
 
 const nodemailer = require("nodemailer");
 const ExcelJS = require("exceljs");
-const fs = require('fs');
 const mime = require('mime');
 const request = require("request");
 const axios = require("axios");
@@ -56,9 +55,9 @@ class NumberController {
       const adminAuth = await Admin.findOne({
         email: req.payload.email,
         deleted: {$ne: true}
-      }, {_id: 1, full_name: 1, nip: 1, email: 1}).lean();
+      }, {_id: 1, full_name: 1, nip: 1, email: 1, super_user: 1, visitor: 1}).lean();
 
-      if (!adminAuth) return res.status(403).json({message: "Forbidden"});
+      if (!adminAuth || adminAuth.visitor) return res.status(403).json({message: "Forbidden"});
 
       const isSendingEmail = true;
 
@@ -101,13 +100,14 @@ class NumberController {
         } else {
           alphabet = "A";
         }
-        numbering = {... await Counter.findOne(counterQuery).lean()};
+        numbering = await Counter.findOne(counterQuery);
+        numbering.total += 1;
         
         if (!getNumber[0].backIdentifier) getNumber[0].backIdentifier = {};
         getNumber[0].backIdentifier = {alphabet, backDate: convBackDate};
 
         docNumberCount = `${getNumber[0].serial_number}${alphabet}`;
-        promise_all.push(getNumber[0].save());
+        promise_all.push(numbering.save(), getNumber[0].save());
       } else {
         const checkDeletedNumber = await Counter.findOne({...counterQuery, deletedNumber: { $exists: true, $ne: [] }});
         if (checkDeletedNumber) {
@@ -115,10 +115,21 @@ class NumberController {
           docNumberCount = numbering.deletedNumber[0];
           checkDeletedNumber.deletedNumber.shift();
           checkDeletedNumber.markModified("deletedNumber");
+          checkDeletedNumber.total += 1;
           promise_all.push(checkDeletedNumber.save());
         } else {
-          numbering = await Counter.findOneAndUpdate(counterQuery, {$inc: {count: 1}}, {new: true, upsert: true});
+          // numbering = await Counter.findOneAndUpdate(counterQuery, {$inc: {count: 1, total: 1}}, {new: true, upsert: true});
+          numbering = await Counter.findOne(counterQuery);
+          if (!numbering) {
+            numbering = new Counter(counterQuery);
+            numbering.count = 1;
+            numbering.total = 1;
+          } else {
+            numbering.count += 1;
+            numbering.total += 1;
+          }
           docNumberCount = numbering.count;
+          promise_all.push(numbering.save());
         }
       }
       
@@ -191,7 +202,7 @@ class NumberController {
       const adminAuth = await Admin.findOne({
         email: req.payload.email,
         deleted: {$ne: true}
-      }, {_id: 1, full_name: 1, nip: 1, email: 1}).lean();
+      }, {_id: 1, full_name: 1, nip: 1, email: 1, super_user: 1, visitor: 1}).lean();
 
       if (!adminAuth) return res.status(403).json({message: "Forbidden"});
 
@@ -284,7 +295,7 @@ class NumberController {
       const adminAuth = await Admin.findOne({
         email: req.payload.email,
         deleted: {$ne: true}
-      }, {_id: 1, full_name: 1, nip: 1, email: 1}).lean();
+      }, {_id: 1, full_name: 1, nip: 1, email: 1, super_user: 1, visitor: 1}).lean();
 
       if (!adminAuth) return res.status(403).json({message: "Forbidden"});
       
@@ -307,9 +318,9 @@ class NumberController {
       const adminAuth = await Admin.findOne({
         email: req.payload.email,
         deleted: {$ne: true}
-      }, {_id: 1, full_name: 1, nip: 1, email: 1}).lean();
+      }, {_id: 1, full_name: 1, nip: 1, email: 1, super_user: 1, visitor: 1}).lean();
 
-      if (!adminAuth) return res.status(403).json({message: "Forbidden"});
+      if (!adminAuth || adminAuth.visitor) return res.status(403).json({message: "Forbidden"});
 
       const {
         _id,
@@ -351,9 +362,9 @@ class NumberController {
       const adminAuth = await Admin.findOne({
         email: req.payload.email,
         deleted: {$ne: true}
-      }, {_id: 1, full_name: 1, nip: 1, email: 1}).lean();
+      }, {_id: 1, full_name: 1, nip: 1, email: 1, super_user: 1, visitor: 1}).lean();
 
-      if (!adminAuth) return res.status(403).json({message: "Forbidden"});
+      if (!adminAuth || adminAuth.visitor) return res.status(403).json({message: "Forbidden"});
 
       const {_id} = req.body;
       const currentDate = new Date();
@@ -370,7 +381,7 @@ class NumberController {
       ).lean();
       if (!docNumber) return res.status(404).json({message: "Document number not found or already deleted"});
 
-      if (!docNumber.isBackDate) await Counter.updateOne({_id: docNumber.counter_info._id}, {$push: {deletedNumber: docNumber.serial_number}});
+      if (!docNumber.isBackDate) await Counter.updateOne({_id: docNumber.counter_info._id}, {$push: {deletedNumber: docNumber.serial_number}, $inc: {total: -1}});
 
       return res.status(200).json({
         message: "Nomor dokumen berhasil dihapus",
@@ -387,7 +398,7 @@ class NumberController {
       const adminAuth = await Admin.findOne({
         email: req.payload.email,
         deleted: {$ne: true}
-      }, {_id: 1, full_name: 1, nip: 1, email: 1}).lean();
+      }, {_id: 1, full_name: 1, nip: 1, email: 1, super_user: 1, visitor: 1}).lean();
 
       if (!adminAuth) return res.status(403).json({message: "Forbidden"});
 
@@ -407,7 +418,7 @@ class NumberController {
       const adminAuth = await Admin.findOne({
         email: req.payload.email,
         deleted: {$ne: true}
-      }, {_id: 1, full_name: 1, nip: 1, email: 1}).lean();
+      }, {_id: 1, full_name: 1, nip: 1, email: 1, super_user: 1, visitor: 1}).lean();
 
       if (!adminAuth) return res.status(403).json({message: "Forbidden"});
 
@@ -427,9 +438,9 @@ class NumberController {
       const adminAuth = await Admin.findOne({
         email: req.payload.email,
         deleted: {$ne: true}
-      }, {_id: 1, full_name: 1, nip: 1, email: 1}).lean();
+      }, {_id: 1, full_name: 1, nip: 1, email: 1, super_user: 1, visitor: 1}).lean();
 
-      if (!adminAuth) return res.status(403).json({message: "Forbidden"});
+      if (!adminAuth || adminAuth.visitor) return res.status(403).json({message: "Forbidden"});
 
       const {
         _id,
@@ -517,9 +528,9 @@ class NumberController {
       const adminAuth = await Admin.findOne({
         email: req.payload.email,
         deleted: {$ne: true}
-      }, {_id: 1, full_name: 1, nip: 1, email: 1}).lean();
+      }, {_id: 1, full_name: 1, nip: 1, email: 1, super_user: 1, visitor: 1}).lean();
 
-      if (!adminAuth) return res.status(403).json({message: "Forbidden"});
+      if (!adminAuth || adminAuth.visitor) return res.status(403).json({message: "Forbidden"});
 
       const {
         _id,
@@ -566,6 +577,40 @@ class NumberController {
       });
     } catch (err) {
       console.error(err, "<<<< error in deleteOnOneDrive NumberController");
+      return res.status(500).json({message: "Internal server error"});
+    }
+  }
+
+  static async listDocCounter(req, res, next) {
+    try {
+      const adminAuth = await Admin.findOne({
+        email: req.payload.email,
+        deleted: {$ne: true}
+      }, {_id: 1, full_name: 1, nip: 1, email: 1, super_user: 1, visitor: 1}).lean();
+
+      if (!adminAuth) return res.status(403).json({message: "Forbidden"});
+
+      const counters = await Counter.aggregate(
+        [
+          {
+            $addFields: {
+              label: {
+                "$cond": {
+                  if: {$not: ["$uker"]},
+                  then: "$type",
+                  else: {$concat: ["$type", "-", "$uker"]}
+                }
+              }
+            }
+          }
+        ]
+      );
+      return res.status(200).json({
+        message: "Here's list of document counter",
+        counters
+      });
+    } catch (err) {
+      console.error(err, "<<<< error in listDocCounter NumberController");
       return res.status(500).json({message: "Internal server error"});
     }
   }

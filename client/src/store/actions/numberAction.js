@@ -13,7 +13,8 @@ import {
   EDIT_DOCNUMBER,
   SHOW_LOADING,
   UPLOAD_DOCUMENT,
-  DELETE_DOCUMENT
+  DELETE_DOCUMENT,
+  LIST_COUNTER
 } from "../actionTypes";
 
 export const addDocNumber = (data) => {
@@ -44,7 +45,7 @@ export const addDocNumber = (data) => {
         Swal.fire({
           icon: "error",
           title: "Error",
-          text: "error in addDocNumber numberAction"
+          text: err.response && err.response.data && err.response.data.message ? err.response.data.message : "error in addDocNumber numberAction"
         });
       })
   }
@@ -184,11 +185,11 @@ export const deleteDocNumber = (_id, navigate) => {
         });
       })
       .catch(err => {
-        console.error(err, "<<<< error in deletedDocNumber numberAction");
+        console.error(err.response, "<<<< error in deletedDocNumber numberAction");
         Swal.fire({
           icon: "error",
           title: "Error",
-          text: "error in addDocNumber numberAction"
+          text: err.response && err.response.data && err.response.data.message ? err.response.data.message : "error in addDocNumber numberAction"
         });
       });
   }
@@ -222,7 +223,7 @@ export const editDocNumber = (data) => {
         Swal.fire({
           icon: "error",
           title: "Error",
-          text: "error in addDocNumber numberAction"
+          text: err.response && err.response.data && err.response.data.message ? err.response.data.message : "error in addDocNumber numberAction"
         });
       });
   }
@@ -265,7 +266,7 @@ export const uploadToOneDrive = (data) => {
         Swal.fire({
           icon: "error",
           title: "Error",
-          text: "error in uploadToOneDrive numberAction"
+          text: err.response && err.response.data && err.response.data.message ? err.response.data.message : "error in uploadToOneDrive numberAction"
         });
       })
       .finally(() => {
@@ -305,7 +306,7 @@ export const deleteOnOneDrive = (data) => {
         Swal.fire({
           icon: "error",
           title: "Error",
-          text: "error in uploadToOneDrive numberAction"
+          text: err.response && err.response.data && err.response.data.message ? err.response.data.message : "error in uploadToOneDrive numberAction"
         });
       })
       .finally(() => {
@@ -314,5 +315,31 @@ export const deleteOnOneDrive = (data) => {
           payload: false
         });
       });
+  }
+}
+
+export const listDocCounter = () => {
+  return (dispatch, getState) => {
+    axios({
+      method: "GET",
+      url: `${API_URL}/number/listDocCounter`,
+      headers: {
+        access_token: localStorage.getItem("access_token")
+      }
+    })
+      .then(({data}) => {
+        dispatch({
+          type: LIST_COUNTER,
+          payload: data
+        });
+      })
+      .catch((err) => {
+        console.error(err.response, "<<<< error in deleteOnOneDrive numberAction");
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: err.response && err.response.data && err.response.data.message ? err.response.data.message : "error in uploadToOneDrive numberAction"
+        });
+      })
   }
 }
