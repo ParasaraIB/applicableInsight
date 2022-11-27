@@ -204,6 +204,17 @@ const NumberDetail = () => {
                   <h6>{docInfo.isBackDate ? "BACKDATE" : "NORMAL"}</h6>
                 </div>
               </div>
+              {
+                docInfo.isBackDate && 
+                <div className="row mt-3">
+                  <div className="col-2">
+                    <label>Back Date</label>
+                  </div>
+                  <div className="col-4">
+                    <h6>{docInfo.backDate.split('T')[0]} {new Date(docInfo.backDate).toLocaleTimeString("en-US")}</h6>
+                  </div>
+                </div>
+              }
               <div className="row mt-3">
                 <div className="col-2">
                   <label>Tanggal Pengambilan</label>

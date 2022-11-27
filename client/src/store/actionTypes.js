@@ -1,6 +1,6 @@
 // API URL
-export const API_URL = "http://localhost:3000";
-// export const API_URL = "https://gusraja.click";
+// export const API_URL = "http://localhost:3000";
+export const API_URL = "https://gusraja.click";
 
 // NUMBER INFO
 export const ADD_COUNTER = "ADD_COUNTER";

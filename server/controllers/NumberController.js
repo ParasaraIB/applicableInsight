@@ -85,6 +85,7 @@ class NumberController {
       const currentDate = new Date();
       const year = currentDate.getFullYear();
       const convBackDate = new Date(backDate);
+      convBackDate.setHours(23, 59, 59, 999);
       let alphabet = "";
       let numbering = {};
       let docNumberCount = 0;
@@ -148,6 +149,7 @@ class NumberController {
       newNumberInfo.pic_name = pic_name;
       newNumberInfo.doc_number = type === "KEP.GBI/KPa" ? `${docNumber}/${year}` : docNumber;
       newNumberInfo.isBackDate = isBackDate;
+      if (backDate) newNumberInfo.backDate = convBackDate;
       newNumberInfo.counter_info = {...numbering};
       newNumberInfo.mail_to = mail_to;
       promise_all.push(newNumberInfo.save());
@@ -246,7 +248,7 @@ class NumberController {
     try {
       const currentDate = new Date();
       const currentYearDate = new Date(currentDate.getFullYear().toString());
-      const retunredValue = {_id: 1, serial_number: 1, directed_to: 1, regarding: 1, pic_name: 1, doc_number: 1, isBackDate: 1, counter_info: 1, created_at: 1};
+      const retunredValue = {_id: 1, serial_number: 1, directed_to: 1, regarding: 1, pic_name: 1, doc_number: 1, isBackDate: 1, backDate: 1, counter_info: 1, created_at: 1};
       const numberInfos = await NumberInfo.find({created_at: {$gte: currentYearDate}}, retunredValue).sort("-_id").lean();
       const allTypes = await Counter.find().lean();
       const workbook = new ExcelJS.Workbook();
@@ -261,7 +263,8 @@ class NumberController {
           {header: "Directed to", key: "directed_to"},
           {header: "Regarding", key: "regarding"},
           {header: "Doc number", key: "doc_number"},
-          {header: "Back date", key: "isBackDate"},
+          {header: "Is back date", key: "isBackDate"},
+          {header: "Back date", key: "backDate"},
           {header: "Pic name", key: "pic_name"},
         ];
         const fillers = [];
