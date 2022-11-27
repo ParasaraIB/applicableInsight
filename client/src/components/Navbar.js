@@ -109,7 +109,7 @@ const Navbar = (props) => {
             className="nav-item mt-3"
             style={{ cursor: "pointer" }}
           >
-              <a href="https://wa.me/6287860414520" target="_blank" rel="noreferrer" style={{color: "white", textDecoration: "none"}}>
+              <a href="https://youtu.be/aIXzzgilAuA" target="_blank" rel="noreferrer" style={{color: "white", textDecoration: "none"}}>
                 <i className="bi bi-youtube" style={{fontStyle: "normal"}}>
                   <span className="ms-2 d-none d-sm-inline">
                     Panduan
