@@ -85,7 +85,7 @@ class NumberController {
       const currentDate = new Date();
       const year = currentDate.getFullYear();
       const convBackDate = new Date(backDate);
-      convBackDate.setHours(23, 59, 59, 999);
+      convBackDate.setUTCHours(0, 0, 0, 0);
       let alphabet = "";
       let numbering = {};
       let docNumberCount = 0;
