@@ -8,6 +8,7 @@ const counter = new mongoose.Schema({
   year: String,
   count: Number,
   uker: String,
+  total: Number,
   deletedNumber: []
 });
 

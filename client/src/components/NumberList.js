@@ -9,12 +9,15 @@ import FileDownload from "js-file-download";
 import { API_URL } from "../store/actionTypes";
 import { useNavigate } from "react-router-dom";
 import Loader from "../components/Loader";
+import jwt_decode from "jwt-decode";
 
 const NumberList = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const hoverStyle = {backgroundColor: "#ffffff", height: "30px", width: "100%", padding: "6px", fontsize: "16px", transition: "all ease .5s", ":hover": {cursor: "pointer", backgroundColor: "#E0E0E0", color: "#000000" }};
-  
+
+  const loggedInPic = jwt_decode(localStorage.getItem("access_token"));
+
   const [, setCurrentPage] = useState("");
   const [search, setSearch] = useState("");
   const [qParams, setQParams] = useState({});
@@ -98,7 +101,7 @@ const NumberList = () => {
           <div className="col">
             {
               !isDownloadLoading ? (
-                <button type="submit" className="btn btn-sm btn-secondary" onClick={handleDownloadRekap}>
+                <button type="submit" className="btn btn-sm btn-secondary" onClick={handleDownloadRekap} disabled={loggedInPic.visitor ? true : false}>
                   <i className="bi bi-filetype-xlsx"></i>Download Rekap
                 </button>
               ) : (
@@ -117,7 +120,7 @@ const NumberList = () => {
             ) : (
             <table className="table">
               <thead>
-                <tr>
+                <tr style={{color: "#045498"}}>
                   <th scope="col">Nomor Dokumen</th>
                   <th scope="col">Tanggal Pengambilan</th>
                   <th scope="col">Ditujukan Kepada</th>

@@ -78,11 +78,11 @@ const Login = () => {
             <div className="card mx-auto" style={{ width: "25rem" }}>
               <div className="m-3 row mx-auto">
                 <div className="col">
-                  <lottie-player src="https://assets1.lottiefiles.com/private_files/lf30_vamrx5qj.json" background="transparent" speed="1" style={{width: "150px", height: "150px"}} loop autoplay></lottie-player>
+                  <lottie-player src="./lottie-animation.json" background="transparent" speed="1" style={{width: "150px", height: "150px"}} loop autoplay></lottie-player>
                 </div>
               </div>
               <div className="row mx-auto">
-                <h4>M-Doc</h4>
+                <h4 style={{color: "#045498"}}>M-Doc</h4>
               </div>
               <form onSubmit={handleSubmit}>
                 <div className="m-3 row">
@@ -120,7 +120,7 @@ const Login = () => {
                     </small>
                   </div>
                   <div className="col d-flex justify-content-end">
-                    <button type="submit" className="btn btn-dark">
+                    <button type="submit" className="btn" style={{backgroundColor: "#045498", color: "white"}}>
                       Login
                     </button>
                   </div>

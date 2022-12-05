@@ -10,7 +10,7 @@ const admin = new mongoose.Schema({
     default: Date.now
   },
   full_name: String,
-  nip: Number,
+  nip: String,
   email: String,
   salt: String,
   hash: String,
@@ -21,6 +21,7 @@ const admin = new mongoose.Schema({
     default: false
   },
   super_user: Boolean,
+  visitor: Boolean,
   edited_by: [],
   deleted_by: {},
 
@@ -58,6 +59,7 @@ admin.methods.generateJwt = function() {
     nip: this.nip,
     email: this.email,
     super_user: this.super_user,
+    visitor: this.visitor,
     exp: parseInt(expiry.getTime()/1000)
   }, process.env.APP_SECRET);
 }

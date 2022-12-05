@@ -5,6 +5,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import Loader from "../components/Loader";
 import Navbar from "../components/Navbar";
+import jwt_decode from "jwt-decode";
 import { deleteDocNumber, deleteOnOneDrive, detailDocNumber, editDocNumber, showLoading, uploadToOneDrive } from "../store/actions/numberAction";
 
 const NumberDetail = () => {
@@ -15,6 +16,7 @@ const NumberDetail = () => {
 
   const docInfo = useSelector(state => state.numberReducer.detailDocNumber);
   const isShowLoading = useSelector(state => state.numberReducer.isShowLoading);
+  const loggedInPic = jwt_decode(localStorage.getItem("access_token"));
 
 
   const [directedTo, setDirectedTo] = useState("");
@@ -102,6 +104,9 @@ const NumberDetail = () => {
           dispatch(editDocNumber(editedDocNumber));
         }
       });
+      setDirectedTo(docInfo.directed_to);
+      setRegarding(docInfo.regarding);
+      setPicName(docInfo.pic_name);
       setEnableDirectedTo(false);
       setEnableRegarding(false);
       setEnablePicName(false);
@@ -173,8 +178,8 @@ const NumberDetail = () => {
           <div className="container">
             <div className="row">
               <div className="col d-flex justify-content-start" style={{marginRight: 0}}>
-                <h3 style={{cursor: "pointer"}} onClick={handleBack}><i className="bi bi-arrow-left"></i></h3>
-                <h4 className="ms-4">Document Detail</h4>
+                <h3 style={{cursor: "pointer", color: "#045498"}} onClick={handleBack}><i className="bi bi-arrow-left"></i></h3>
+                <h4 className="ms-4" style={{color: "#045498"}}>Document Detail</h4>
               </div>
               <hr />
             </div>
@@ -199,6 +204,17 @@ const NumberDetail = () => {
                   <h6>{docInfo.isBackDate ? "BACKDATE" : "NORMAL"}</h6>
                 </div>
               </div>
+              {
+                docInfo.isBackDate && 
+                <div className="row mt-3">
+                  <div className="col-2">
+                    <label>Back Date</label>
+                  </div>
+                  <div className="col-4">
+                    <h6>{docInfo.backDate.split('T')[0]} {new Date(docInfo.backDate).toLocaleTimeString("en-US")}</h6>
+                  </div>
+                </div>
+              }
               <div className="row mt-3">
                 <div className="col-2">
                   <label>Tanggal Pengambilan</label>
@@ -216,7 +232,7 @@ const NumberDetail = () => {
                   {
                     !enableDirectedTo ? (
                       <>
-                        <button type="submit" className="btn btn-sm btn-secondary ms-3" onClick={(e) => handleEnableDirectedTo(e, {decision: true})}>
+                        <button type="submit" className="btn btn-sm btn-secondary ms-3" onClick={(e) => handleEnableDirectedTo(e, {decision: true})} disabled={loggedInPic.visitor ? true : false}>
                           <div className="col d-flex"><i className="bi bi-pencil-square"></i>Edit</div>
                         </button>
                       </>
@@ -242,7 +258,7 @@ const NumberDetail = () => {
                   {
                     !enableRegarding ? (
                       <>
-                        <button type="submit" className="btn btn-sm btn-secondary ms-3" onClick={(e) => handleEnableRegarding(e, {decision: true})}>
+                        <button type="submit" className="btn btn-sm btn-secondary ms-3" onClick={(e) => handleEnableRegarding(e, {decision: true})} disabled={loggedInPic.visitor ? true : false}>
                           <div className="col d-flex"><i className="bi bi-pencil-square"></i>Edit</div>
                         </button>
                       </>
@@ -268,7 +284,7 @@ const NumberDetail = () => {
                   {
                     !enablePicName ? (
                       <>
-                        <button type="submit" className="btn btn-sm btn-secondary ms-3" onClick={(e) => handlePicName(e, {decision: true})}>
+                        <button type="submit" className="btn btn-sm btn-secondary ms-3" onClick={(e) => handlePicName(e, {decision: true})} disabled={loggedInPic.visitor ? true : false}>
                           <div className="col d-flex"><i className="bi bi-pencil-square"></i>Edit</div>
                         </button>
                       </>
@@ -322,7 +338,7 @@ const NumberDetail = () => {
                       <></>
                     )
                   }
-                  <button type="submit" className="btn btn-primary btn-sm mt-3" onClick={handleUpload} disabled={docInfo.document_links && docInfo.document_links.length >= 3 ? true : false}>
+                  <button type="submit" className="btn btn-primary btn-sm mt-3" onClick={handleUpload} disabled={(docInfo.document_links && docInfo.document_links.length >= 3) || loggedInPic.visitor ? true : false}>
                     <i className="bi bi-file-earmark-arrow-up"></i>Upload Dokumen
                   </button>
                   <input 
@@ -341,7 +357,7 @@ const NumberDetail = () => {
               </div>
               <div className="row mt-3">
                 <div className="col-8 d-flex justify-content-end">
-                  <button type="submit" className="btn btn-danger" onClick={handleDelete}>
+                  <button type="submit" className="btn btn-danger" onClick={handleDelete} disabled={loggedInPic.visitor ? true : false}>
                     <i className="bi bi-trash3"></i>Delete
                   </button>
                 </div>

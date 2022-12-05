@@ -25,7 +25,7 @@ const Navbar = (props) => {
   }, [props])
 
   return (
-    <div className="col-auto col-md-3 col-xl-2 px-sm-2 px-0 bg-dark">
+    <div className="col-auto col-md-3 col-xl-2 px-sm-2 px-0" style={{backgroundColor: "#045498"}}>
       <div className="d-flex flex-column align-items-center align-items-sm-start px-3 pt-2 text-white min-vh-100">
         <div className="dropdown mt-4">
           <div
@@ -51,9 +51,6 @@ const Navbar = (props) => {
               id="submenu2"
               data-bs-parent="#menu"
             >
-              {
-                
-              }
               <li className="w-100 mt-2">
                 <span className="d-none d-sm-inline">
                   <small>{loggedInPic.full_name}</small>
@@ -104,6 +101,18 @@ const Navbar = (props) => {
                 <i className="bi bi-whatsapp" style={{fontStyle: "normal"}}>
                   <span className="ms-2 d-none d-sm-inline">
                     Helpdesk IT
+                  </span>
+                </i>
+              </a>
+          </li>
+          <li 
+            className="nav-item mt-3"
+            style={{ cursor: "pointer" }}
+          >
+              <a href="https://youtu.be/aIXzzgilAuA" target="_blank" rel="noreferrer" style={{color: "white", textDecoration: "none"}}>
+                <i className="bi bi-youtube" style={{fontStyle: "normal"}}>
+                  <span className="ms-2 d-none d-sm-inline">
+                    Panduan
                   </span>
                 </i>
               </a>
